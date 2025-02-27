@@ -15,6 +15,10 @@ and the Flutter guide for
 
 A Flutter widget that recreates the macOS dock effect with smooth animations and customizable parameters.
 
+## Live Example
+
+Check out the live demo: [MacOS Dock Demo](https://master-wayne7.github.io/macos_dock/)
+
 ## Features
 
 - 🔄 Smooth scaling animation on hover
