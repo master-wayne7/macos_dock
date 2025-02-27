@@ -1,3 +1,8 @@
+## 1.0.1
+
+* Fixed the height using scaleFactor and formatted the code
+
+  
 ## 1.0.0
 
 * Initial release of the MacOS Dock widget

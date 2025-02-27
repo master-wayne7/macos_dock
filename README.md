@@ -37,7 +37,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  macos_dock: ^1.0.0
+  macos_dock: ^1.0.1
 ```
 
 ## Usage
