@@ -18,7 +18,7 @@ jobs:
           cd example
           flutter config --enable-web
           flutter pub get
-          flutter build web --base-href /macos_dock/tree/gh-pages/ --release
+          flutter build web --base-href /macos_dock/ --release
       - run: |
           cd example/build/web
           git init
