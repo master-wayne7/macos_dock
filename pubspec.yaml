@@ -1,5 +1,5 @@
 name: macos_dock
-description: "A Flutter package for creating a macOS-style dock."
+description: "A Flutter widget that recreates the macOS dock with smooth scaling animations, hover effects, and customizable parameters for a native-like experience."
 version: 1.0.0
 homepage: https://github.com/master-wayne7/macos_dock
 

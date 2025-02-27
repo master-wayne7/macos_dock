@@ -91,21 +91,27 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     // Initialize a bounce controller and animation for each icon
-    _bounceControllers = List.generate(widget.children(0).length, (index) {
-      return AnimationController(
-        duration: const Duration(milliseconds: 500),
-        vsync: this,
-      );
-    });
+    _bounceControllers = List.generate(
+      widget.children(0).length,
+      (index) {
+        return AnimationController(
+          duration: const Duration(milliseconds: 500),
+          vsync: this,
+        );
+      },
+    );
 
-    _bounceAnimations = List.generate(widget.children(0).length, (index) {
-      return Tween<double>(begin: 0, end: -40).animate(
-        CurvedAnimation(
-          parent: _bounceControllers[index],
-          curve: Curves.easeInOut,
-        ),
-      );
-    });
+    _bounceAnimations = List.generate(
+      widget.children(0).length,
+      (index) {
+        return Tween<double>(begin: 0, end: -40).animate(
+          CurvedAnimation(
+            parent: _bounceControllers[index],
+            curve: Curves.easeInOut,
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -136,14 +142,18 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
         });
       },
       child: SizedBox(
-        height: _isHovering ? (widget.iconSize * widget.defaultMaxScale * 1.5) + (widget.defaultMaxTranslate.abs() * widget.translateFactor) : widget.iconSize,
+        height: _isHovering
+            ? (widget.iconSize * widget.defaultMaxScale * widget.scaleFactor) +
+                (widget.defaultMaxTranslate.abs() * widget.translateFactor)
+            : widget.iconSize,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             for (int i = 0; i < widget.children(0).length; i++)
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: widget.iconSpacing / 2),
+                padding:
+                    EdgeInsets.symmetric(horizontal: widget.iconSpacing / 2),
                 child: TweenAnimationBuilder<double>(
                   duration: _animationDuration,
                   curve: Curves.easeOutCubic,
@@ -156,7 +166,10 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
                       animation: _bounceAnimations[i],
                       builder: (context, child) {
                         return Transform.translate(
-                          offset: Offset(0, _getTranslation(scale) + _bounceAnimations[i].value),
+                          offset: Offset(
+                              0,
+                              _getTranslation(scale) +
+                                  _bounceAnimations[i].value),
                           child: AnimatedContainer(
                             duration: _animationDuration,
                             curve: Curves.easeOutCubic,
@@ -192,7 +205,8 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
     double normalizedDistance = distance / _hoverRadius;
 
     // Base influence with smoother falloff
-    double influence = max(0, (1 - pow(normalizedDistance * 1.5, 2).toDouble()));
+    double influence =
+        max(0, (1 - pow(normalizedDistance * 1.5, 2).toDouble()));
 
     // Enhance center effect without causing shrinkage
     if (normalizedDistance < 0.5) {
@@ -207,12 +221,14 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
   double _calculateBaseScale(int index) {
     if (_mousePosition == null) return 1.0;
 
-    double iconCenterX = index * (widget.iconSize + widget.iconSpacing) + (widget.iconSize);
+    double iconCenterX =
+        index * (widget.iconSize + widget.iconSpacing) + (widget.iconSize);
     double distance = (_mousePosition!.dx - iconCenterX).abs();
     double normalizedDistance = distance / _hoverRadius;
 
     // Base influence with smoother falloff
-    double influence = max(0, (1 - pow(normalizedDistance * 1.5, 2).toDouble()));
+    double influence =
+        max(0, (1 - pow(normalizedDistance * 1.5, 2).toDouble()));
 
     // Enhance center effect without causing shrinkage
     if (normalizedDistance < 0.5) {

@@ -13,7 +13,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'MacOS Dock Example',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+        ),
         useMaterial3: true,
       ),
       home: const MyHomePage(),
@@ -71,25 +73,33 @@ class _MyHomePageState extends State<MyHomePage> {
                   _buildSlider(
                     "Scale Factor",
                     scaleFactor,
-                    (value) => setState(() => scaleFactor = value),
-                    max: 15,
+                    (value) => setState(
+                      () => scaleFactor = value,
+                    ),
+                    max: 5,
                   ),
                   _buildSlider(
                     "Translate Factor",
                     translateFactor,
-                    (value) => setState(() => translateFactor = value),
+                    (value) => setState(
+                      () => translateFactor = value,
+                    ),
                     max: 5,
                   ),
                   _buildSlider(
                     "Radius Factor",
                     radiusFactor,
-                    (value) => setState(() => radiusFactor = value),
+                    (value) => setState(
+                      () => radiusFactor = value,
+                    ),
                     max: 15,
                   ),
                   _buildSlider(
                     "Icon Spacing",
                     iconSpacing,
-                    (value) => setState(() => iconSpacing = value),
+                    (value) => setState(
+                      () => iconSpacing = value,
+                    ),
                     max: 30,
                   ),
                 ],
