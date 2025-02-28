@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MacOS Dock Example',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
@@ -34,6 +35,30 @@ class _MyHomePageState extends State<MyHomePage> {
   double translateFactor = 1.5;
   double radiusFactor = 5;
   double iconSpacing = 8.0;
+  bool enableReordering = false;
+  Duration animationDuration = const Duration(milliseconds: 200);
+
+  // List to store dock items
+  List<String> dockItems = [
+    'assets/Finder.png',
+    'assets/App_Store.png',
+    'assets/Calendar.png',
+    'assets/Apple_Music.png',
+    'assets/Apple_TV.png',
+    'assets/Brave.png',
+    'assets/vscode.png',
+    'assets/Spotify.png',
+    'assets/discord.png',
+    'assets/Control.png',
+    'assets/blender.png',
+  ];
+
+  void _handleReorder(int oldIndex, int newIndex) {
+    setState(() {
+      final item = dockItems.removeAt(oldIndex);
+      dockItems.insert(newIndex, item);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +72,14 @@ class _MyHomePageState extends State<MyHomePage> {
             translateFactor: translateFactor,
             radiusFactor: radiusFactor,
             iconSpacing: iconSpacing,
-            children: (scale) => [
-              Image.asset('assets/Finder.png'),
-              Image.asset('assets/App_Store.png'),
-              Image.asset('assets/Calendar.png'),
-              Image.asset('assets/Apple_Music.png'),
-              Image.asset('assets/Apple_TV.png'),
-              Image.asset('assets/Brave.png'),
-              Image.asset('assets/vscode.png'),
-              Image.asset('assets/Spotify.png'),
-              Image.asset('assets/discord.png'),
-              Image.asset('assets/Control.png'),
-              Image.asset('assets/blender.png'),
-            ],
+            enableReordering: enableReordering,
+            onReorder: _handleReorder,
+            animationDuration: animationDuration,
+            children: (scale) => dockItems
+                .map(
+                  (item) => Image.asset(item),
+                )
+                .toList(),
           ),
 
           // Control panel
@@ -70,6 +90,16 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  SwitchListTile(
+                    title: const Text('Enable Reordering'),
+                    value: enableReordering,
+                    onChanged: (value) {
+                      setState(() {
+                        enableReordering = value;
+                      });
+                    },
+                  ),
+                  const Divider(),
                   _buildSlider(
                     "Scale Factor",
                     scaleFactor,
@@ -102,6 +132,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     max: 30,
                   ),
+                  _buildSlider(
+                    "Animation Duration (ms)",
+                    animationDuration.inMilliseconds.toDouble(),
+                    (value) => setState(
+                      () => animationDuration =
+                          Duration(milliseconds: value.round()),
+                    ),
+                    min: 0,
+                    max: 900,
+                    divisions: 90,
+                  ),
                 ],
               ),
             ),
@@ -115,13 +156,15 @@ class _MyHomePageState extends State<MyHomePage> {
     String label,
     double value,
     ValueChanged<double> onChanged, {
+    double min = 0.1,
     double max = 15.0,
+    int? divisions,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$label: ${value.toStringAsFixed(2)}',
+          '$label: ${value.toStringAsFixed(1)}',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         Row(
@@ -129,8 +172,9 @@ class _MyHomePageState extends State<MyHomePage> {
             Expanded(
               child: Slider(
                 value: value,
-                min: 0.1,
+                min: min,
                 max: max,
+                divisions: divisions,
                 onChanged: onChanged,
               ),
             ),

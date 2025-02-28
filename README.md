@@ -28,8 +28,14 @@ Check out the live demo: [MacOS Dock Demo](https://master-wayne7.github.io/macos
 - 🖼️ Support for any widget as dock items
 - ↕️ Dynamic height adjustment
 - 🎬 Customizable animation duration
+- 🔄 Drag and drop reordering support
 
-![MacOS Dock Demo](https://raw.githubusercontent.com/yourusername/macos_dock/main/example/demo.gif)
+## Platform Support
+
+- ✅ Web
+- ✅ Windows
+- ✅ Linux
+- ✅ macOS
 
 ## Installation
 
@@ -37,7 +43,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  macos_dock: ^1.0.1
+  macos_dock: ^1.0.2
 ```
 
 ## Usage
@@ -47,6 +53,10 @@ MacosDock(
   iconSize: 50,
   scaleFactor: 1.5,
   translateFactor: 1.0,
+  enableReordering: true, // Enable drag and drop reordering
+  onReorder: (oldIndex, newIndex) {
+    // Handle reordering here
+  },
   children: (scale) => [
     Image.asset('assets/finder.png'),
     Image.asset('assets/safari.png'),
@@ -69,6 +79,10 @@ MacosDock(
   defaultMaxScale: 2.5,     // Maximum scale factor
   defaultMaxTranslate: -30, // Maximum upward translation
   animationDuration: const Duration(milliseconds: 200),
+  enableReordering: false,  // Enable/disable drag and drop reordering
+  onReorder: (oldIndex, newIndex) {
+    // Handle reordering of items
+  },
   children: (scale) => [
     // Your dock items here
   ],
@@ -85,6 +99,8 @@ MacosDock(
 - `defaultMaxScale`: Maximum scale factor for icons (default: 2.5)
 - `defaultMaxTranslate`: Maximum upward translation in pixels (default: -30)
 - `animationDuration`: Duration of the scaling/translation animations (default: 200ms)
+- `enableReordering`: Enable drag and drop reordering of dock items (default: false)
+- `onReorder`: Callback function when items are reordered (required if enableReordering is true)
 
 ## Contributing
 

@@ -53,6 +53,13 @@ class MacosDock extends StatefulWidget {
   /// Duration for the scaling and translation animations.
   final Duration animationDuration;
 
+  /// Whether the dock items can be reordered by dragging
+  final bool enableReordering;
+
+  /// Callback function when items are reordered
+  /// The function receives the old and new index of the reordered item
+  final void Function(int oldIndex, int newIndex)? onReorder;
+
   /// Creates a macOS-style dock.
   ///
   /// The [children] parameter is required and should return a list of widgets to
@@ -68,7 +75,12 @@ class MacosDock extends StatefulWidget {
     this.defaultMaxScale = 2.5,
     this.defaultMaxTranslate = -30,
     this.animationDuration = const Duration(milliseconds: 200),
-  });
+    this.enableReordering = false,
+    this.onReorder,
+  }) : assert(
+          !enableReordering || onReorder != null,
+          'onReorder must be provided when enableReordering is true',
+        );
 
   @override
   State<MacosDock> createState() => MacosDockState();
@@ -77,19 +89,36 @@ class MacosDock extends StatefulWidget {
 class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
   Offset? _mousePosition;
   bool _isHovering = false;
+  bool _isDragging = false;
 
   // Calculate hover radius based on spread factor
   double get _hoverRadius => widget.radiusFactor * widget.iconSize;
 
-  late final Duration _animationDuration = widget.animationDuration;
+  // Remove the late final to allow updates
+  late Duration _animationDuration;
 
   // AnimationController for bounce effect
   late List<AnimationController> _bounceControllers;
   late List<Animation<double>> _bounceAnimations;
 
+  late AnimationController _reorderAnimationController;
+  late Animation<double> _reorderAnimation;
+
   @override
   void initState() {
     super.initState();
+    _animationDuration = widget.animationDuration;
+
+    // Add reorder animation controller
+    _reorderAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _reorderAnimation = CurvedAnimation(
+      parent: _reorderAnimationController,
+      curve: Curves.easeInOutCubic,
+    );
+
     // Initialize a bounce controller and animation for each icon
     _bounceControllers = List.generate(
       widget.children(0).length,
@@ -115,7 +144,19 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
   }
 
   @override
+  void didUpdateWidget(MacosDock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update animation duration when the prop changes
+    if (oldWidget.animationDuration != widget.animationDuration) {
+      setState(() {
+        _animationDuration = widget.animationDuration;
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _reorderAnimationController.dispose();
     for (var controller in _bounceControllers) {
       controller.dispose();
     }
@@ -124,16 +165,126 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> dockItems = [
+      for (int i = 0; i < widget.children(0).length; i++)
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: widget.iconSpacing / 2),
+          child: TweenAnimationBuilder<double>(
+            duration: _animationDuration,
+            curve: Curves.easeOutCubic,
+            tween: Tween<double>(
+              begin: 1.0,
+              end: _getScaleFactor(i),
+            ),
+            builder: (context, scale, child) {
+              return AnimatedBuilder(
+                animation: _bounceAnimations[i],
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(
+                        0, _getTranslation(scale) + _bounceAnimations[i].value),
+                    child: AnimatedContainer(
+                      duration: _animationDuration,
+                      curve: Curves.easeOutCubic,
+                      width: _isDragging
+                          ? widget.iconSize
+                          : widget.iconSize * scale,
+                      height: _isDragging
+                          ? widget.iconSize
+                          : widget.iconSize * scale,
+                      child: widget.children(scale)[i],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+    ];
+
+    Widget dockContent = widget.enableReordering
+        ? SizedBox(
+            height: _isHovering && !_isDragging
+                ? (widget.iconSize *
+                        widget.defaultMaxScale *
+                        widget.scaleFactor) +
+                    (widget.defaultMaxTranslate.abs() * widget.translateFactor)
+                : widget.iconSize,
+            child: ReorderableListView.builder(
+              scrollDirection: Axis.horizontal,
+              shrinkWrap: true,
+              buildDefaultDragHandles: false,
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: Curves.easeOutCubic.transform(animation.value),
+                      child: child,
+                    );
+                  },
+                  child: child,
+                );
+              },
+              itemCount: dockItems.length,
+              itemBuilder: (context, index) {
+                return ReorderableDragStartListener(
+                  key: ValueKey(index),
+                  index: index,
+                  child: AnimatedBuilder(
+                    animation: _reorderAnimation,
+                    builder: (context, child) {
+                      return Align(
+                        alignment: Alignment.bottomCenter,
+                        child: child,
+                      );
+                    },
+                    child: dockItems[index],
+                  ),
+                );
+              },
+              onReorderStart: (index) {
+                setState(() {
+                  _isDragging = true;
+                  _mousePosition = null;
+                });
+                _reorderAnimationController.forward();
+              },
+              onReorderEnd: (index) {
+                setState(() {
+                  _mousePosition = null;
+                  _isDragging = false;
+                });
+                _reorderAnimationController.reverse();
+              },
+              onReorder: (oldIndex, newIndex) {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                widget.onReorder?.call(oldIndex, newIndex);
+              },
+            ),
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: dockItems,
+          );
+
     return MouseRegion(
       onEnter: (_) {
-        setState(() {
-          _isHovering = true;
-        });
+        if (!_isDragging) {
+          setState(() {
+            _isHovering = true;
+          });
+        }
       },
       onHover: (event) {
-        setState(() {
-          _mousePosition = event.localPosition;
-        });
+        if (!_isDragging) {
+          setState(() {
+            _mousePosition = event.localPosition;
+          });
+        }
       },
       onExit: (_) {
         setState(() {
@@ -141,56 +292,12 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
           _mousePosition = null;
         });
       },
-      child: SizedBox(
-        height: _isHovering
-            ? (widget.iconSize * widget.defaultMaxScale * widget.scaleFactor) +
-                (widget.defaultMaxTranslate.abs() * widget.translateFactor)
-            : widget.iconSize,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            for (int i = 0; i < widget.children(0).length; i++)
-              Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: widget.iconSpacing / 2),
-                child: TweenAnimationBuilder<double>(
-                  duration: _animationDuration,
-                  curve: Curves.easeOutCubic,
-                  tween: Tween<double>(
-                    begin: 1.0,
-                    end: _getScaleFactor(i),
-                  ),
-                  builder: (context, scale, child) {
-                    return AnimatedBuilder(
-                      animation: _bounceAnimations[i],
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(
-                              0,
-                              _getTranslation(scale) +
-                                  _bounceAnimations[i].value),
-                          child: AnimatedContainer(
-                            duration: _animationDuration,
-                            curve: Curves.easeOutCubic,
-                            width: widget.iconSize * scale,
-                            height: widget.iconSize * scale,
-                            child: widget.children(scale)[i],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
+      child: dockContent,
     );
   }
 
   double _getScaleFactor(int index) {
-    if (_mousePosition == null) return 1.0;
+    if (_isDragging || _mousePosition == null) return 1.0;
 
     double position = 0;
     for (int i = 0; i < index; i++) {

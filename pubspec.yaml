@@ -1,6 +1,6 @@
 name: macos_dock
 description: "A Flutter widget that recreates the macOS dock with smooth scaling animations, hover effects, and customizable parameters for a native-like experience."
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/master-wayne7/macos_dock
 
 environment:
@@ -20,8 +20,6 @@ example: main.dart
 
 flutter:
 platforms:
-  android:
-  ios:
   linux:
   macos:
   web:
