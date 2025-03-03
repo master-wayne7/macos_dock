@@ -167,8 +167,9 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final List<Widget> dockItems = [
       for (int i = 0; i < widget.children(0).length; i++)
-        Padding(
+        Container(
           padding: EdgeInsets.symmetric(horizontal: widget.iconSpacing / 2),
+          alignment: Alignment.bottomCenter,
           child: TweenAnimationBuilder<double>(
             duration: _animationDuration,
             curve: Curves.easeOutCubic,
@@ -191,7 +192,8 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
                           : widget.iconSize * scale,
                       height: _isDragging
                           ? widget.iconSize
-                          : widget.iconSize * scale,
+                          : widget.iconSize * scale +
+                              (_getTranslation(scale + 1) * 1.25).abs(),
                       child: widget.children(scale)[i],
                     ),
                   );

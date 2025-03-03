@@ -1,3 +1,10 @@
+## 1.0.3
+
+* Fixed height calculation for hover area
+* Improved icon alignment and scaling
+* Fixed container height issues
+* Enhanced reordering animation smoothness
+
 ## 1.0.2
 
 * Added reordering functionality 
