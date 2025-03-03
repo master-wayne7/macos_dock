@@ -185,6 +185,7 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
                     offset: Offset(
                         0, _getTranslation(scale) + _bounceAnimations[i].value),
                     child: AnimatedContainer(
+                      alignment: Alignment.bottomCenter,
                       duration: _animationDuration,
                       curve: Curves.easeOutCubic,
                       width: _isDragging
@@ -193,7 +194,7 @@ class MacosDockState extends State<MacosDock> with TickerProviderStateMixin {
                       height: _isDragging
                           ? widget.iconSize
                           : widget.iconSize * scale +
-                              (_getTranslation(scale + 1) * 1.25).abs(),
+                              (_getTranslation(scale)).abs(),
                       child: widget.children(scale)[i],
                     ),
                   );

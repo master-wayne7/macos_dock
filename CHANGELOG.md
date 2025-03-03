@@ -1,3 +1,10 @@
+## 1.0.4
+
+* Fixed icon alignment issues
+* Improved container height calculations
+* Enhanced animation smoothness
+* Optimized scaling and translation effects
+
 ## 1.0.3
 
 * Fixed height calculation for hover area
